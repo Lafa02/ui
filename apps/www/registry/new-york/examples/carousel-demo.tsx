@@ -1,5 +1,6 @@
 import * as React from "react"
 
+import { CarouselDots } from "@/registry/default/ui/carousel"
 import { Card, CardContent } from "@/registry/new-york/ui/card"
 import {
   Carousel,
@@ -27,6 +28,7 @@ export default function CarouselDemo() {
       </CarouselContent>
       <CarouselPrevious />
       <CarouselNext />
+      <CarouselDots />
     </Carousel>
   )
 }

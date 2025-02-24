@@ -4,7 +4,7 @@ import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/registry/default/ui/button"
@@ -28,6 +28,8 @@ type CarouselContextProps = {
   scrollNext: () => void
   canScrollPrev: boolean
   canScrollNext: boolean
+  selectedIndex: number
+  scrollTo: (index: number) => void
 } & CarouselProps
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
@@ -67,6 +69,7 @@ const Carousel = React.forwardRef<
     )
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
+    const [selectedIndex, setSelectedIndex] = React.useState(0)
 
     const onSelect = React.useCallback((api: CarouselApi) => {
       if (!api) {
@@ -75,6 +78,7 @@ const Carousel = React.forwardRef<
 
       setCanScrollPrev(api.canScrollPrev())
       setCanScrollNext(api.canScrollNext())
+      setSelectedIndex(api.selectedScrollSnap())
     }, [])
 
     const scrollPrev = React.useCallback(() => {
@@ -96,6 +100,13 @@ const Carousel = React.forwardRef<
         }
       },
       [scrollPrev, scrollNext]
+    )
+
+    const scrollTo = React.useCallback(
+      (index: number) => {
+        api?.scrollTo(index)
+      },
+      [api]
     )
 
     React.useEffect(() => {
@@ -132,6 +143,8 @@ const Carousel = React.forwardRef<
           scrollNext,
           canScrollPrev,
           canScrollNext,
+          scrollTo,
+          selectedIndex,
         }}
       >
         <div
@@ -252,6 +265,41 @@ const CarouselNext = React.forwardRef<
 })
 CarouselNext.displayName = "CarouselNext"
 
+const CarouselDots = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const { selectedIndex, scrollTo, orientation, api } = useCarousel()
+  console.log(selectedIndex)
+  return (
+    <div
+      className={cn(
+        "absolute flex",
+        orientation === "horizontal"
+          ? "-bottom-12 left-1/2 -translate-x-1/2"
+          : "-left-12 top-1/2 -translate-y-1/2 flex-col",
+        className
+      )}
+      ref={ref}
+      {...props}
+    >
+      {api?.scrollSnapList().map((_, index) => (
+        <Button
+          key={index}
+          size="icon"
+          variant="ghost"
+          className={cn({ "opacity-50": index !== selectedIndex })}
+          onClick={() => scrollTo(index)}
+        >
+          <Circle className="h-4 w-4" />
+          <span className="sr-only">Go to slide {index + 1}</span>
+        </Button>
+      ))}
+    </div>
+  )
+})
+CarouselDots.displayName = "CarouselDots"
+
 export {
   type CarouselApi,
   Carousel,
@@ -259,4 +307,5 @@ export {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  CarouselDots,
 }
